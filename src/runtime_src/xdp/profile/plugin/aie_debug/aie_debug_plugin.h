@@ -60,7 +60,7 @@ namespace xdp {
 
     // Threads used by this plugin
     void pollDeadlock(uint64_t index, void* handle);
-    void writeDebug(uint64_t index, void* handle, VPWriter* aieWriter, VPWriter* aieshimWriter);
+    void writeDebug(uint64_t index, void* handle);
 
   private:
 

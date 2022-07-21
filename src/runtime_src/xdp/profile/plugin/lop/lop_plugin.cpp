@@ -135,10 +135,9 @@ namespace xdp {
     db->registerPlugin(this) ;
     db->registerInfo(info::lop);
 
-    VPWriter* writer = new LowOverheadTraceWriter("lop_trace.csv") ;
-    writers.push_back(writer) ;
-
-    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE") ;
+    auto writer = std::make_unique<LowOverheadTraceWriter>("lop_trace.csv");
+    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE");
+    writers.push_back(std::move(writer));
 
     // In order to avoid overhead later, preallocate the string table
     //  in the dynamic database with all of the strings we will store

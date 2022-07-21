@@ -94,10 +94,6 @@ namespace xdp {
     fout.open(currentFileName) ;
   }
 
-  VPWriter::~VPWriter()
-  {
-  }
-
   // After write is called, if we are doing continuous offload
   //  we need to open a new file
   bool VPWriter::warnFileNum = false;

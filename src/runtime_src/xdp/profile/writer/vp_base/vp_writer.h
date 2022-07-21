@@ -63,7 +63,7 @@ namespace xdp {
   public:
     XDP_EXPORT VPWriter(const char* filename) ;
     XDP_EXPORT VPWriter(const char* filename, VPDatabase* inst, bool useDir = true) ;
-    XDP_EXPORT virtual ~VPWriter() ;
+    XDP_EXPORT virtual ~VPWriter() = default ;
 
     XDP_EXPORT virtual std::string getcurrentFileName() ;
 

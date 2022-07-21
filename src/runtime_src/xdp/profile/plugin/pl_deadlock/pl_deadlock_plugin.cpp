@@ -67,7 +67,7 @@ namespace xdp {
   void PLDeadlockPlugin::pollDeadlock(void* handle, uint64_t deviceId)
   {
     std::string deviceName = (db->getStaticInfo()).getDeviceName(deviceId);
-    DeviceIntf* deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
+    auto deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
 
     if (deviceIntf == nullptr)
       return;
@@ -124,10 +124,10 @@ namespace xdp {
       }
     }
 
-    DeviceIntf* deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
+    auto deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
     if (deviceIntf == nullptr) {
       // If DeviceIntf is not already created, create a new one to communicate with physical device
-      deviceIntf = new DeviceIntf();
+      deviceIntf = std::make_shared<DeviceIntf>();
       try {
         deviceIntf->setDevice(new HalDevice(handle));
         deviceIntf->readDebugIPlayout();
@@ -136,7 +136,6 @@ namespace xdp {
         std::stringstream msg;
         msg << "Unable to read debug IP layout for device " << deviceId << ": " << e.what();
         xrt_core::message::send(severity_level::warning, "XRT", msg.str());
-        delete deviceIntf;
         return;
       }
       (db->getStaticInfo()).setDeviceIntf(deviceId, deviceIntf);

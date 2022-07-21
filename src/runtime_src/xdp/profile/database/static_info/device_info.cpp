@@ -54,12 +54,8 @@ namespace xdp {
   {
     // When loading a new xclbin, we need to destroy any existing
     //  device interface.
-    if (loadedXclbins.size() > 0) {
-      if (loadedXclbins.back()->deviceIntf != nullptr) {
-        delete loadedXclbins.back()->deviceIntf ;
-        loadedXclbins.back()->deviceIntf = nullptr ;
-      }
-    }
+    if (loadedXclbins.size() && loadedXclbins.back()->deviceIntf)
+      loadedXclbins.back()->deviceIntf.reset();
     loadedXclbins.push_back(xclbin) ;
   }
 

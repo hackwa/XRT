@@ -50,13 +50,15 @@ namespace xdp {
     std::string toolVersion  = xdp::getToolVersion() ;
 
     // Based upon the configuration, create the appropriate writers
-    VPWriter* writer = new HALHostTraceWriter("hal_host_trace.csv",
-                                              version,
-                                              creationTime,
-                                              xrtVersion,
-                                              toolVersion) ;
-    writers.push_back(writer) ;
+    auto writer = std::make_unique<HALHostTraceWriter>(
+      "hal_host_trace.csv",
+      version,
+      creationTime,
+      xrtVersion,
+      toolVersion
+    );
     (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE");
+    writers.push_back(std::move(writer));
   }
 
   HALPlugin::~HALPlugin()
@@ -80,7 +82,7 @@ namespace xdp {
 
   void HALPlugin::writeAll(bool openNewFiles)
   {
-    for (auto w : writers)
+    for (const auto& w : writers)
       w->write(openNewFiles) ;
   }
 }

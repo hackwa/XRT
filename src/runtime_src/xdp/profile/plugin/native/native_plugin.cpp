@@ -31,10 +31,9 @@ namespace xdp {
     db->registerPlugin(this) ;
     db->registerInfo(info::native) ;
 
-    VPWriter* writer = new NativeTraceWriter("native_trace.csv") ;
-    writers.push_back(writer) ;
-
-    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE") ;
+    auto writer = std::make_unique<NativeTraceWriter>("native_trace.csv") ;
+    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE");
+    writers.push_back(std::move(writer));
   }
 
   NativeProfilingPlugin::~NativeProfilingPlugin()
@@ -46,9 +45,9 @@ namespace xdp {
 
       // We were destroyed before the database, so write the writers
       //  and unregister ourselves from the database
-      for (auto w : writers) {
+      for (const auto& w : writers)
         w->write(false) ;
-      }
+
       db->unregisterPlugin(this) ;
     }
     NativeProfilingPlugin::live = false;

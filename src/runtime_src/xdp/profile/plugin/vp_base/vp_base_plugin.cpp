@@ -66,10 +66,6 @@ namespace xdp {
 
   XDPPlugin::~XDPPlugin()
   {
-    for (auto w : writers)
-    {
-      delete w ;
-    }
   }
 
   void XDPPlugin::emulationSetup()
@@ -118,7 +114,7 @@ namespace xdp {
 
     // Do a final write
     mtx_writer_list.lock();
-    for (auto w : writers)
+    for (const auto& w : writers)
       w->write(false);
     mtx_writer_list.unlock();
   }
@@ -153,7 +149,7 @@ namespace xdp {
 
     // If a writer is already writing, then don't do anything
     if (mtx_writer_list.try_lock()) {
-      for (auto w : writers) {
+      for (const auto& w : writers) {
         bool success = w->write(openNewFiles);
         if (openNewFiles && success)
           (db->getStaticInfo()).addOpenedFile(w->getcurrentFileName().c_str(), type);

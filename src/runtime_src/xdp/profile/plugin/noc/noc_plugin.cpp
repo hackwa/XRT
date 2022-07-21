@@ -47,11 +47,13 @@ namespace xdp {
       mDevices.push_back(deviceName);
 
       std::string outputFile = "noc_profile_" + deviceName + ".csv"; 
-      VPWriter* writer = new NOCProfilingWriter(outputFile.c_str(),
-                                                deviceName.c_str(),
-                                                index) ;
-      writers.push_back(writer);
-      db->getStaticInfo().addOpenedFile(writer->getcurrentFileName(), "NOC_PROFILE") ;
+      auto writer = std::make_unique<NOCProfilingWriter>(
+        outputFile.c_str(),
+        deviceName.c_str(),
+        index
+      );
+      db->getStaticInfo().addOpenedFile(writer->getcurrentFileName(), "NOC_PROFILE");
+      writers.push_back(std::move(writer));
 
       // Move on to next device
       xclClose(handle);
@@ -73,9 +75,8 @@ namespace xdp {
     mPollingThread.join();
 
     if (VPDatabase::alive()) {
-      for (auto w : writers) {
+      for (const auto& w : writers)
         w->write(false);
-      }
 
       db->unregisterPlugin(this);
     }

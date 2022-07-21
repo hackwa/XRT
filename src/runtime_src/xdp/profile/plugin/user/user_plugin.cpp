@@ -29,8 +29,8 @@ namespace xdp {
     db->registerPlugin(this) ;
     db->registerInfo(info::user) ;
 
-    VPWriter* writer = new UserEventsTraceWriter("user_events.csv") ;
-    writers.push_back(writer) ;
+    auto writer = std::make_unique<UserEventsTraceWriter>("user_events.csv");
+    writers.push_back(std::move(writer)) ;
   }
 
   UserEventsPlugin::~UserEventsPlugin()
@@ -39,8 +39,8 @@ namespace xdp {
     {
       // We were destroyed before the database, so write the writers
       //  and unregister ourselves from the database
-      for (auto w : writers) {
-        w->write(false) ;
+      for (const auto& w : writers) {
+        w->write(false);
         db->getStaticInfo().addOpenedFile(w->getcurrentFileName(), "VP_TRACE");
       }
       db->unregisterPlugin(this) ;
@@ -51,9 +51,8 @@ namespace xdp {
   void UserEventsPlugin::writeAll(bool openNewFiles)
   {
     XDPPlugin::writeAll(openNewFiles) ;
-    for (auto w : writers) {
-      db->getStaticInfo().addOpenedFile(w->getcurrentFileName(), "VP_TRACE") ;
-    }
+    for (const auto& w : writers)
+      db->getStaticInfo().addOpenedFile(w->getcurrentFileName(), "VP_TRACE");
   }
 
 } // end namespace

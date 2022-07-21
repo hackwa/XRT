@@ -169,10 +169,10 @@ namespace xdp {
 
     // For the HAL level, we must create a device interface using 
     //  the xdp::HalDevice to communicate with the physical device
-    DeviceIntf* devInterface = (db->getStaticInfo()).getDeviceIntf(deviceId);
-    if(nullptr == devInterface) {
+    auto devInterface = (db->getStaticInfo()).getDeviceIntf(deviceId);
+    if (devInterface == nullptr) {
       // If DeviceIntf is not already created, create a new one to communicate with physical device
-      devInterface = new DeviceIntf() ;
+      devInterface = std::make_shared<DeviceIntf>() ;
       try {
         devInterface->setDevice(new HalDevice(ownedHandle)) ;
         devInterface->readDebugIPlayout() ;      
@@ -180,7 +180,6 @@ namespace xdp {
       catch(std::exception& /*e*/)
       {
         // Read debug IP layout could throw an exception
-        delete devInterface ;
         return;
       }
       (db->getStaticInfo()).setDeviceIntf(deviceId, devInterface);

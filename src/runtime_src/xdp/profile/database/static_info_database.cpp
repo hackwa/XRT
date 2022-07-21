@@ -325,10 +325,8 @@ namespace xdp {
     XclbinInfo* xclbin = deviceInfo[deviceId]->currentXclbin() ;
     if (!xclbin)
       return ;
-    if (xclbin->deviceIntf) {
-      delete xclbin->deviceIntf ;
-      xclbin->deviceIntf = nullptr ;
-    }
+    if (xclbin->deviceIntf)
+      xclbin->deviceIntf.reset();
   }
 
   bool VPStaticDatabase::isDeviceReady(uint64_t deviceId)
@@ -378,7 +376,7 @@ namespace xdp {
     return deviceInfo[deviceId]->deviceName ;
   }
 
-  void VPStaticDatabase::setDeviceIntf(uint64_t deviceId, DeviceIntf* devIntf)
+  void VPStaticDatabase::setDeviceIntf(uint64_t deviceId, std::shared_ptr<DeviceIntf>& devIntf)
   {
     std::lock_guard<std::mutex> lock(deviceLock) ;
 
@@ -390,15 +388,15 @@ namespace xdp {
     xclbin->deviceIntf = devIntf ;
   }
 
-  DeviceIntf* VPStaticDatabase::getDeviceIntf(uint64_t deviceId)
+  std::shared_ptr<DeviceIntf> VPStaticDatabase::getDeviceIntf(uint64_t deviceId)
   {
     std::lock_guard<std::mutex> lock(deviceLock) ;
 
     if (deviceInfo.find(deviceId) == deviceInfo.end())
-      return nullptr ;
+      return std::shared_ptr<DeviceIntf>();
     XclbinInfo* xclbin = deviceInfo[deviceId]->currentXclbin() ;
     if (!xclbin)
-      return nullptr ;
+      return std::shared_ptr<DeviceIntf>();
 
     return xclbin->deviceIntf ;
   }

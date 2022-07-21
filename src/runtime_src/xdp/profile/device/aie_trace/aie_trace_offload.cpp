@@ -42,7 +42,7 @@ namespace xdp {
 
 AIETraceOffload::AIETraceOffload
   ( void* handle, uint64_t id
-  , DeviceIntf* dInt
+  , std::shared_ptr<DeviceIntf> dInt
   , AIETraceLogger* logger
   , bool isPlio
   , uint64_t totalSize

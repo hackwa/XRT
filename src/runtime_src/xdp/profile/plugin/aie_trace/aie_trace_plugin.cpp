@@ -1109,10 +1109,10 @@ bool AieTracePlugin::configureStartIteration(xaiefal::XAieMod& core)
       return;
     }
 
-    DeviceIntf* deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
+    auto deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
     if (deviceIntf == nullptr) {
       // If DeviceIntf is not already created, create a new one to communicate with physical device
-      deviceIntf = new DeviceIntf();
+      deviceIntf = std::make_shared<DeviceIntf>();
       try {
         deviceIntf->setDevice(new HalDevice(handle));
         deviceIntf->readDebugIPlayout();
@@ -1121,7 +1121,6 @@ bool AieTracePlugin::configureStartIteration(xaiefal::XAieMod& core)
         std::stringstream msg;
         msg << "Unable to read debug IP layout for device " << deviceId << ": " << e.what();
         xrt_core::message::send(severity_level::warning, "XRT", msg.str());
-        delete deviceIntf;
         return;
       }
       (db->getStaticInfo()).setDeviceIntf(deviceId, deviceIntf);
@@ -1131,23 +1130,27 @@ bool AieTracePlugin::configureStartIteration(xaiefal::XAieMod& core)
     // Create runtime config file
     if (runtimeMetrics) {
       std::string configFile = "aie_event_runtime_config.json";
-      VPWriter* writer = new AieTraceConfigWriter(configFile.c_str(),
+      auto writer = std::make_unique<AieTraceConfigWriter>(configFile.c_str(),
                                                   deviceId, metricSet);
-      writers.push_back(writer);
       (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "AIE_EVENT_RUNTIME_CONFIG");
+      writers.push_back(std::move(writer));
     }
 
     // Create trace output files
     for (uint64_t n = 0; n < numAIETraceOutput; n++) {
       // Consider both Device Id and Stream Id to create the output file name
       std::string fileName = "aie_trace_" + std::to_string(deviceId) + "_" + std::to_string(n) + ".txt";
-      VPWriter* writer = new AIETraceWriter(fileName.c_str(), deviceId, n,
-                                            "" /*version*/,
-                                            "" /*creationTime*/,
-                                            "" /*xrtVersion*/,
-                                            "" /*toolVersion*/);
-      writers.push_back(writer);
+      auto writer = std::make_unique<AIETraceWriter>(
+        fileName.c_str(),
+        deviceId,
+        n,
+        "" /*version*/,
+        "" /*creationTime*/,
+        "" /*xrtVersion*/,
+        "" /*toolVersion*/
+      );
       (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "AIE_EVENT_TRACE");
+      writers.push_back(std::move(writer));
 
       std::stringstream msg;
       msg << "Creating AIE trace file " << fileName << " for device " << deviceId;
@@ -1435,7 +1438,7 @@ bool AieTracePlugin::configureStartIteration(xaiefal::XAieMod& core)
     //         to ensure all execution trace gets written to DDR.
     // NOTE 2: This flush mechanism is only valid for runtime event trace
     // NOTE 3: Disable flush if we have new datamover
-    DeviceIntf* deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
+    auto deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceId);
     bool ts2mmFlushSupported = false;
     if (deviceIntf)
       ts2mmFlushSupported = deviceIntf->supportsflushAIE();

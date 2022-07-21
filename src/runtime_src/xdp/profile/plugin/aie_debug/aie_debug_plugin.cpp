@@ -354,7 +354,7 @@ namespace xdp {
     }
   }
 
-  void AIEDebugPlugin::writeDebug(uint64_t index, void* handle, VPWriter* aieWriter, VPWriter* aieshimWriter)
+  void AIEDebugPlugin::writeDebug(uint64_t index, void* handle)
   {
     auto it = mThreadCtrlMap.find(handle);
     if (it == mThreadCtrlMap.end())
@@ -365,8 +365,9 @@ namespace xdp {
       if (!(db->getStaticInfo().isDeviceReady(index)))
         continue;
 
-      aieWriter->write(false, handle);
-      aieshimWriter->write(false, handle);
+      for (const auto& w : writers)
+        w->write(false, handle);
+
       std::this_thread::sleep_for(std::chrono::microseconds(mPollingInterval));
     }
   }
@@ -415,27 +416,27 @@ namespace xdp {
 
     // Create and register aie status writer
     std::string filename = "aie_status_" + devicename + "_" + currentTime + ".json";
-    VPWriter* aieWriter = new AIEDebugWriter(filename.c_str(), devicename.c_str(), deviceID);
-    writers.push_back(aieWriter);
+    auto aieWriter = std::make_unique<AIEDebugWriter>(filename.c_str(), devicename.c_str(), deviceID);
     db->getStaticInfo().addOpenedFile(aieWriter->getcurrentFileName(), "AIE_RUNTIME_STATUS");
+    writers.push_back(std::move(aieWriter));
 
     // Create and register aie shim status writer
     filename = "aieshim_status_" + devicename + "_" + currentTime + ".json";
-    VPWriter* aieshimWriter = new AIEShimDebugWriter(filename.c_str(), devicename.c_str(), deviceID);
-    writers.push_back(aieshimWriter);
+    auto aieshimWriter = std::make_unique<AIEShimDebugWriter>(filename.c_str(), devicename.c_str(), deviceID);
     db->getStaticInfo().addOpenedFile(aieshimWriter->getcurrentFileName(), "AIE_RUNTIME_STATUS");
+    writers.push_back(std::move(aieshimWriter));
 
     // Start the AIE debug thread
     mThreadCtrlMap[handle] = true;
     // NOTE: This does not start the threads immediately.
     mDeadlockThreadMap[handle] = std::thread { [=] { pollDeadlock(deviceID, handle); } };
-    mDebugThreadMap[handle] = std::thread { [=] { writeDebug(deviceID, handle, aieWriter, aieshimWriter); } };
+    mDebugThreadMap[handle] = std::thread { [=] { writeDebug(deviceID, handle); } };
   }
 
   void AIEDebugPlugin::endPollforDevice(void* handle)
   {
     // Last chance at writing status reports
-    for (auto w : writers)
+    for (const auto& w : writers)
       w->write(false, handle);
  
     // Ask threads to stop

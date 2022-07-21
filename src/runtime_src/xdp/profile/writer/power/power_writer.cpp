@@ -28,10 +28,6 @@ namespace xdp {
   {
   }
 
-  PowerProfilingWriter::~PowerProfilingWriter()
-  {    
-  }
-
   bool PowerProfilingWriter::write(bool openNewFile)
   {
     // Write header

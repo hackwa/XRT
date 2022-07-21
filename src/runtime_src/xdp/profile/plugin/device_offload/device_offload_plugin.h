@@ -57,16 +57,16 @@ namespace xdp {
     //  responsible for offloading data from all devices.
     typedef std::tuple<DeviceTraceOffload*, 
                        DeviceTraceLogger*,
-                       DeviceIntf*> DeviceData ;
+                       std::shared_ptr<DeviceIntf>> DeviceData ;
 
     std::map<uint64_t, DeviceData> offloaders;
 
     XDP_EXPORT void addDevice(const std::string& sysfsPath) ;
-    XDP_EXPORT void configureDataflow(uint64_t deviceId, DeviceIntf* devInterface) ;
-    XDP_EXPORT void configureFa(uint64_t deviceId, DeviceIntf* devInterface) ;
-    XDP_EXPORT void configureCtx(uint64_t deviceId, DeviceIntf* devInterface) ;
-    XDP_EXPORT void addOffloader(uint64_t deviceId, DeviceIntf* devInterface) ;
-    XDP_EXPORT void configureTraceIP(DeviceIntf* devInterface) ;
+    XDP_EXPORT void configureDataflow(uint64_t deviceId, const std::shared_ptr<DeviceIntf>& devInterface) ;
+    XDP_EXPORT void configureFa(uint64_t deviceId, const std::shared_ptr<DeviceIntf>& devInterface) ;
+    XDP_EXPORT void configureCtx(uint64_t deviceId, const std::shared_ptr<DeviceIntf>& devInterface) ;
+    XDP_EXPORT void addOffloader(uint64_t deviceId, const std::shared_ptr<DeviceIntf>& devInterface) ;
+    XDP_EXPORT void configureTraceIP(const std::shared_ptr<DeviceIntf>& devInterface) ;
     XDP_EXPORT void startContinuousThreads(uint64_t deviceId) ;
 
     XDP_EXPORT void readCounters() ;

@@ -62,7 +62,7 @@ namespace xdp {
     VPDatabase* db ;
 
     // All of the writers associated with the plugin
-    std::vector<VPWriter*> writers ;
+    std::vector<std::unique_ptr<VPWriter>> writers ;
 
     // If there is something that is common amongst all plugins when
     //  dealing with emulation flows.

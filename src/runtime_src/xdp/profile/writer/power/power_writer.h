@@ -30,7 +30,7 @@ namespace xdp {
     uint64_t deviceIndex ;
   public:
     PowerProfilingWriter(const char* filename, const char* d, uint64_t index) ;
-    ~PowerProfilingWriter() ;
+    ~PowerProfilingWriter() = default;
 
     virtual bool write(bool openNewFile) ;
   } ;

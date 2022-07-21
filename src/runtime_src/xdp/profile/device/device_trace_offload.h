@@ -110,7 +110,7 @@ if(!m_debug); else std::cout
 class DeviceTraceOffload {
 public:
   XDP_EXPORT
-  DeviceTraceOffload(DeviceIntf* dInt, DeviceTraceLogger* dTraceLogger,
+  DeviceTraceOffload(std::shared_ptr<DeviceIntf> dInt, DeviceTraceLogger* dTraceLogger,
                      uint64_t offload_sleep_ms, uint64_t trbuf_sz);
   XDP_EXPORT
   virtual ~DeviceTraceOffload();
@@ -171,7 +171,7 @@ private:
   bool sync_and_log(uint64_t index);
 
 protected:
-  DeviceIntf* dev_intf;
+  std::shared_ptr<DeviceIntf> dev_intf;
   bool m_initialized = false;
   bool m_debug = false; /* Enable Output stream for log */
 

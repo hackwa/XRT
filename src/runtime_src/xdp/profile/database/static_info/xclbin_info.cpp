@@ -49,10 +49,4 @@ namespace xdp {
     }
   }
 
-  XclbinInfo::~XclbinInfo()
-  {
-    if (deviceIntf)
-      delete deviceIntf ;
-  }
-
 } // end namespace xdp

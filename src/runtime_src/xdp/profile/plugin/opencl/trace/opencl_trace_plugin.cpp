@@ -37,9 +37,9 @@ namespace xdp {
     db->registerInfo(info::opencl_trace) ;
 
     // Add a single writer for the OpenCL host trace
-    VPWriter* writer = new OpenCLTraceWriter("opencl_trace.csv") ;
-    writers.push_back(writer) ;
-    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE") ;
+    auto writer = std::make_unique<OpenCLTraceWriter>("opencl_trace.csv");
+    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE");
+    writers.push_back(std::move(writer));
 
     // Continuous writing of opencl trace
     if (xrt_core::config::get_continuous_trace()) 

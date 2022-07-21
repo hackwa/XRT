@@ -102,7 +102,6 @@ namespace xdp {
     AIEData.metadata = std::make_shared<AieTraceMetadata>(deviceID, handle);
     auto& metadata = AIEData.metadata;
     AIEData.supported = true; // initialize struct
-    AIEData.devIntf = nullptr;
 
 // #ifdef XRT_NATIVE_BUILD
     AIEData.implementation = std::make_unique<AieTrace_x86Impl>(db, metadata);
@@ -123,11 +122,10 @@ namespace xdp {
       }
     }
     // Check for device interface
-    DeviceIntf* deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceID);
+    auto deviceIntf = (db->getStaticInfo()).getDeviceIntf(deviceID);
     if (deviceIntf == nullptr) {
     // If DeviceIntf is not already created, create a new one to communicate with physical device
-    DeviceIntf* deviceIntf = new DeviceIntf();
-    AIEData.devIntf = deviceIntf;
+    deviceIntf = std::make_shared<DeviceIntf>();
     try {
       deviceIntf->setDevice(new HalDevice(handle));
       deviceIntf->readDebugIPlayout();
@@ -167,19 +165,19 @@ namespace xdp {
     std::string metricSet = metadata->getMetricSet();
     if (metadata->getRuntimeMetrics()) {
       std::string configFile = "aie_event_runtime_config.json";
-      VPWriter* writer = new AieTraceConfigWriter
+      auto writer = std::make_unique<AieTraceConfigWriter>
       ( configFile.c_str()
       , deviceID
       , metricSet
       );
-      writers.push_back(writer);
       (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "AIE_EVENT_RUNTIME_CONFIG");
+      writers.push_back(std::move(writer));
     }
 
     // Add writer for every stream
     for (uint64_t n = 0; n < metadata->getNumStreams(); ++n) {
 	    std::string fileName = "aie_trace_" + std::to_string(deviceID) + "_" + std::to_string(n) + ".txt";
-      VPWriter* writer = new AIETraceWriter
+      auto writer = std::make_unique<AIETraceWriter>
       ( fileName.c_str()
       , deviceID
       , n  // stream id
@@ -188,8 +186,8 @@ namespace xdp {
       , "" // xrt version
       , "" // tool version
       );
-      writers.push_back(writer);
       db->getStaticInfo().addOpenedFile(writer->getcurrentFileName(), "AIE_EVENT_TRACE");
+      writers.push_back(std::move(writer));
 
       std::stringstream msg;
       msg << "Creating AIE trace file " << fileName << " for device " << deviceID;

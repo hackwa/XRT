@@ -25,7 +25,7 @@ namespace xdp {
 
 DeviceTraceOffload::
 DeviceTraceOffload
-  ( DeviceIntf* dInt
+  ( std::shared_ptr<DeviceIntf> dInt
   , DeviceTraceLogger* dTraceLogger
   , uint64_t sleep_interval_ms
   , uint64_t trbuf_sz

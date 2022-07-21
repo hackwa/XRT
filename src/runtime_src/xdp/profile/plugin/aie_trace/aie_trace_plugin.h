@@ -114,7 +114,7 @@ namespace xdp {
 
       typedef std::tuple<AIETraceOffload*, 
                          AIETraceLogger*,
-                         DeviceIntf*> AIEData;
+                         std::shared_ptr<DeviceIntf>> AIEData;
 
       std::map<uint32_t, AIEData>  aieOffloaders;
 

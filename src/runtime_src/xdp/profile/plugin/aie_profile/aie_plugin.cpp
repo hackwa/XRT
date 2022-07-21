@@ -223,9 +223,8 @@ namespace xdp {
     endPoll();
 
     if (VPDatabase::alive()) {
-      for (auto w : writers) {
+      for (const auto& w : writers)
         w->write(false);
-      }
 
       db->unregisterPlugin(this);
     }
@@ -967,10 +966,10 @@ namespace xdp {
     std::string outputFile = "aie_profile_" + deviceName + core_str + mem_str 
         + shim_str + chan_str + ".csv";
 
-    VPWriter* writer = new AIEProfilingWriter(outputFile.c_str(),
+    auto writer = std::make_unique<AIEProfilingWriter>(outputFile.c_str(),
                                               deviceName.c_str(), mIndex);
-    writers.push_back(writer);
     db->getStaticInfo().addOpenedFile(writer->getcurrentFileName(), "AIE_PROFILE");
+    writers.push_back(std::move(writer));
 
     // Start the AIE profiling thread
     mThreadCtrlMap[handle] = true;

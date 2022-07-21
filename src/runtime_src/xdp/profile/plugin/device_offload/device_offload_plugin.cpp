@@ -133,21 +133,23 @@ namespace xdp {
     std::string filename = 
       "device_trace_" + std::to_string(deviceId) + ".csv" ;
 
-    VPWriter* writer = new DeviceTraceWriter(filename.c_str(),
-                                             deviceId,
-                                             version,
-                                             creationTime,
-                                             xrtVersion,
-                                             toolVersion);
-    writers.push_back(writer) ;
-    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE") ;
+    auto writer = std::make_unique<DeviceTraceWriter>(
+      filename.c_str(),
+      deviceId,
+      version,
+      creationTime,
+      xrtVersion,
+      toolVersion
+    );
+    (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "VP_TRACE");
+    writers.push_back(std::move(writer));
 
     if (continuous_trace)
       XDPPlugin::startWriteThread(XDPPlugin::get_trace_file_dump_int_s(), "VP_TRACE");
   }
 
   void DeviceOffloadPlugin::configureDataflow(uint64_t deviceId,
-                                              DeviceIntf* devInterface)
+                                              const std::shared_ptr<DeviceIntf>& devInterface)
   {
     uint32_t numAM = devInterface->getNumMonitors(xdp::MonitorType::accel) ;
     bool* dataflowConfig = new bool[numAM] ;
@@ -158,7 +160,7 @@ namespace xdp {
   }
 
   void DeviceOffloadPlugin::configureFa(uint64_t deviceId,
-                                        DeviceIntf* devInterface)
+                                        const std::shared_ptr<DeviceIntf>& devInterface)
   {
     uint32_t numAM = devInterface->getNumMonitors(xdp::MonitorType::accel) ;
     bool* FaConfig = new bool[numAM] ;
@@ -169,7 +171,7 @@ namespace xdp {
   }
 
   void DeviceOffloadPlugin::configureCtx(uint64_t deviceId,
-                                        DeviceIntf* devInterface)
+                                        const std::shared_ptr<DeviceIntf>& devInterface)
   {
     auto ctxInfo = (db->getStaticInfo()).getCtxInfo(deviceId) ;
     devInterface->configAmContext(ctxInfo);
@@ -178,7 +180,7 @@ namespace xdp {
   // It is the responsibility of the child class to instantiate the appropriate
   //  device interface based on the level (OpenCL or HAL)
   void DeviceOffloadPlugin::addOffloader(uint64_t deviceId,
-                                         DeviceIntf* devInterface)
+                                         const std::shared_ptr<DeviceIntf>& devInterface)
   {
     uint64_t trace_buffer_size = 0;
     std::vector<uint64_t> buf_sizes;
@@ -296,7 +298,7 @@ namespace xdp {
     }
   }
   
-  void DeviceOffloadPlugin::configureTraceIP(DeviceIntf* devInterface)
+  void DeviceOffloadPlugin::configureTraceIP(const std::shared_ptr<DeviceIntf>& devInterface)
   {
     // Collect all the profiling options from xrt.ini
     std::string data_transfer_trace = xrt_core::config::get_device_trace() ;

@@ -147,7 +147,7 @@ namespace xdp {
     // The interface with actually communicating with the device.  This
     //  handles the abstractions necessary for communicating in emulation,
     //  actual hardware, and through different mechanisms.
-    DeviceIntf* deviceIntf = nullptr ;
+    std::shared_ptr<DeviceIntf> deviceIntf;
 
     // The configuration of the PL portion of the design
     PLInfo pl ;
@@ -155,7 +155,7 @@ namespace xdp {
     // The configuration of the AIE portion of the design (if applicable)
     AIEInfo aie ;
 
-    ~XclbinInfo() ;
+    ~XclbinInfo() = default;
   } ;
 
 } // end namespace xdp

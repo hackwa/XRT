@@ -42,7 +42,6 @@ namespace xdp {
     struct AIEData {
       uint64_t deviceID;
       bool supported;
-      DeviceIntf* devIntf;
       std::unique_ptr<AIETraceOffload> offloader;
       std::unique_ptr<AIETraceLogger> logger;
       std::unique_ptr<AieTraceImpl> implementation;

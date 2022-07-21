@@ -62,10 +62,9 @@ namespace xdp {
       // Before writing, make sure that counters are read and trace is processed
       db->broadcast(VPDatabase::READ_COUNTERS, nullptr) ;
       db->broadcast(VPDatabase::READ_TRACE, nullptr) ;
-      for (auto w : writers)
-      {
-        w->write(false) ;
-      }
+      for (const auto& w : writers)
+        w->write(false);
+
       db->unregisterPlugin(this) ;
     }
     OpenCLCountersProfilingPlugin::live = false;

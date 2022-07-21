@@ -98,12 +98,13 @@ namespace xdp {
 
       std::string outputFile = "power_profile_" + deviceName + ".csv" ; 
 
-      VPWriter* writer = new PowerProfilingWriter(outputFile.c_str(),
-                                                  deviceName.c_str(),
-                                                  index) ;
-      writers.push_back(writer) ;
-      (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), 
-                                          "XRT_POWER_PROFILE") ;
+      auto writer = std::make_unique<PowerProfilingWriter>(
+        outputFile.c_str(),
+        deviceName.c_str(),
+        index
+      );
+      (db->getStaticInfo()).addOpenedFile(writer->getcurrentFileName(), "XRT_POWER_PROFILE");
+      writers.push_back(std::move(writer));
 
       // Move on to the next device
       xclClose(handle) ;
@@ -123,10 +124,8 @@ namespace xdp {
 
     if (VPDatabase::alive())
     {
-      for (auto w : writers)
-      {
-        w->write(false) ;
-      }
+      for (const auto& w : writers)
+        w->write(false);
 
       db->unregisterPlugin(this) ;
     }
