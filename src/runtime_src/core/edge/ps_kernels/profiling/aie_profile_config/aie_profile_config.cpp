@@ -23,8 +23,8 @@
 #include "core/common/time.h"
 #include "xaiengine.h"
 #include "xdp/profile/database/static_info/aie_constructs.h"
-#include "xdp/profile/plugin/aie_profile_new/x86/aie_profile_kernel_config.h"
-#include "xdp/profile/plugin/aie_profile_new/aie_profile_defs.h"
+#include "xdp/profile/plugin/aie_profile/x86/aie_profile_kernel_config.h"
+#include "xdp/profile/plugin/aie_profile/aie_profile_defs.h"
 
 extern "C"{
 #include <xaiengine/xaiegbl_params.h>

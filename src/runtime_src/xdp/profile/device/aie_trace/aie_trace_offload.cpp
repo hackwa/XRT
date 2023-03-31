@@ -20,14 +20,13 @@
 #include <iostream>
 
 #include "core/common/message.h"
-
+#include "core/include/xrt/xrt_kernel.h"
 #include "xdp/profile/database/database.h"
 #include "xdp/profile/database/static_info/aie_constructs.h"
 #include "xdp/profile/device/aie_trace/aie_trace_logger.h"
 #include "xdp/profile/device/aie_trace/aie_trace_offload.h"
 #include "xdp/profile/device/device_intf.h"
-#include "core/include/xrt/xrt_kernel.h"
-#include "xdp/profile/plugin/aie_trace_new/x86/aie_trace_kernel_config.h"
+#include "xdp/profile/plugin/aie_trace/x86/aie_trace_kernel_config.h"
 
 /*
  * XRT_X86_BUILD is set only for x86 builds

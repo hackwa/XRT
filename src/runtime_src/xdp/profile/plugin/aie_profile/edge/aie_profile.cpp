@@ -32,7 +32,7 @@
 #include "xdp/profile/database/database.h"
 #include "xdp/profile/database/static_info/aie_constructs.h"
 #include "xdp/profile/database/static_info/pl_constructs.h"
-#include "xdp/profile/plugin/aie_profile_new/aie_profile_metadata.h"
+#include "xdp/profile/plugin/aie_profile/aie_profile_metadata.h"
 
 namespace {
   static void* fetchAieDevInst(void* devHandle)

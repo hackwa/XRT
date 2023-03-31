@@ -22,9 +22,9 @@
 #include <map>
 #include <vector>
 
+#include "core/common/device.h"
 #include "xdp/config.h"
 #include "xdp/profile/database/static_info/aie_constructs.h"
-#include "core/common/device.h"
 
 namespace xdp {
 

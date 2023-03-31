@@ -21,9 +21,9 @@
 
 #include <memory>
 #include <vector>
-#include "xaiefal/xaiefal.hpp"
 #include "xaiengine.h"
-#include "xdp/profile/plugin/aie_trace_new/x86/aie_trace_kernel_config.h"
+#include "xaiefal/xaiefal.hpp"
+#include "xdp/profile/plugin/aie_trace/x86/aie_trace_kernel_config.h"
 
 constexpr uint32_t ES1_TRACE_COUNTER = 1020;
 constexpr uint32_t ES2_TRACE_COUNTER = 0x3FF00;

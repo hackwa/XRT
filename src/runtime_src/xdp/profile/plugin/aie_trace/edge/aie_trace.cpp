@@ -27,15 +27,14 @@
 #include "core/common/xrt_profiling.h"
 #include "core/edge/user/shim.h"
 #include "core/include/xrt/xrt_kernel.h"
-
 #include "xdp/profile/database/database.h"
 #include "xdp/profile/database/events/creator/aie_trace_data_logger.h"
 #include "xdp/profile/database/static_info/aie_constructs.h"
 #include "xdp/profile/database/static_info/pl_constructs.h"
 #include "xdp/profile/device/device_intf.h"
 #include "xdp/profile/device/tracedefs.h"
-#include "xdp/profile/plugin/aie_trace_new/aie_trace_metadata.h"
-#include "xdp/profile/plugin/aie_trace_new/edge/aie_trace.h"
+#include "xdp/profile/plugin/aie_trace/aie_trace_metadata.h"
+#include "xdp/profile/plugin/aie_trace/edge/aie_trace.h"
 #include "xdp/profile/plugin/vp_base/utility.h"
 
 constexpr unsigned int NUM_CORE_TRACE_EVENTS = 8;
