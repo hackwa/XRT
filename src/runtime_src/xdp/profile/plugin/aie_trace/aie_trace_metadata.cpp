@@ -38,8 +38,26 @@ namespace xdp {
   namespace pt = boost::property_tree;
   using severity_level = xrt_core::message::severity_level;
   constexpr double AIE_DEFAULT_FREQ_MHZ = 1000.0;
+
+  bool
+  tileCompare(tile_type tile1, tile_type tile2)
+  {
+    return ((tile1.col == tile2.col) && (tile1.row == tile2.row));
+  }
+
+  inline void
+  throw_if_error(bool err, const char* msg)
+  {
+    if (err)
+      throw std::runtime_error(msg);
+  }
   
-  AieTraceMetadata::AieTraceMetadata(uint64_t deviceID, void* handle)
+  AieTraceMetadata::
+  AieTraceMetadata
+  (
+    uint64_t deviceID
+  , void* handle
+  )
   : deviceID(deviceID)
   , handle(handle)
   {
@@ -98,12 +116,8 @@ namespace xdp {
     }
   }
 
-  bool tileCompare(tile_type tile1, tile_type tile2) 
-  {
-    return ((tile1.col == tile2.col) && (tile1.row == tile2.row));
-  }
-
-  void AieTraceMetadata::checkSettings()
+  void AieTraceMetadata::
+  checkSettings()
   {
     using boost::property_tree::ptree;
     const std::set<std::string> validSettings {
@@ -146,14 +160,19 @@ namespace xdp {
     }
   }
 
-  void AieTraceMetadata::read_aie_metadata(const char* data, size_t size, pt::ptree& aie_project)
+  void AieTraceMetadata::
+  read_aie_metadata(const char* data, size_t size, pt::ptree& aie_project)
   {
+    if (test_mode && test_metadata)
+      data = test_metadata;
+
     std::stringstream aie_stream;
     aie_stream.write(data,size);
     pt::read_json(aie_stream,aie_project);
   }
 
-  int AieTraceMetadata::getHardwareGen()
+  int AieTraceMetadata::
+  getHardwareGen()
   {
     static int hwGen = 1;
     static bool gotValue = false;
@@ -172,7 +191,8 @@ namespace xdp {
     return hwGen;
   }
 
-  uint16_t AieTraceMetadata::getAIETileRowOffset()
+  uint16_t AieTraceMetadata::
+  getAIETileRowOffset()
   {
     static uint16_t rowOffset = 1;
     static bool gotValue = false;
@@ -191,8 +211,8 @@ namespace xdp {
     return rowOffset;
   }
 
-  std::vector<std::string>
-  AieTraceMetadata::getSettingsVector(std::string settingsString) 
+  std::vector<std::string> AieTraceMetadata::
+  getSettingsVector(std::string settingsString)
   {
     if (settingsString.empty())
       return {};
@@ -211,7 +231,8 @@ namespace xdp {
     return settingsVector;
   }
 
-  std::vector<tile_type> AieTraceMetadata::getMemTilesForTracing()
+  std::vector<tile_type> AieTraceMetadata::
+  getMemTilesForTracing()
   {
     if (getHardwareGen() == 1) 
       return {};
@@ -244,7 +265,8 @@ namespace xdp {
     return memTiles;
   }
 
-  void AieTraceMetadata::setTraceStartControl()
+  void AieTraceMetadata::
+  setTraceStartControl()
   {
     useDelay = false;
     useGraphIterator = false;
@@ -313,8 +335,8 @@ namespace xdp {
 
   }
 
-  std::vector<std::string> 
-  AieTraceMetadata::get_graphs(const xrt_core::device* device)
+  std::vector<std::string> AieTraceMetadata::
+  get_graphs(const xrt_core::device* device)
   {
     auto data = device->get_axlf_section(AIE_METADATA);
     if (!data.first || !data.second)
@@ -332,8 +354,8 @@ namespace xdp {
     return graphs;
   }
 
-  std::vector<std::string> 
-  AieTraceMetadata::get_kernels(const xrt_core::device* device)
+  std::vector<std::string> AieTraceMetadata::
+  get_kernels(const xrt_core::device* device)
   {
     auto data = device->get_axlf_section(AIE_METADATA);
     if (!data.first || !data.second)
@@ -358,15 +380,9 @@ namespace xdp {
     return kernels;
   }
 
-  inline void throw_if_error(bool err, const char* msg)
-  {
-    if (err)
-      throw std::runtime_error(msg);
-  }
-
   // Find all AIE tiles associated with a graph (kernel_name = all)
-  std::vector<tile_type> 
-  AieTraceMetadata::get_aie_tiles(const xrt_core::device* device, const std::string& graph_name)
+  std::vector<tile_type> AieTraceMetadata::
+  get_aie_tiles(const xrt_core::device* device, const std::string& graph_name)
   {
     auto data = device->get_axlf_section(AIE_METADATA);
     if (!data.first || !data.second)
@@ -426,9 +442,9 @@ namespace xdp {
   // Find all MEM tiles associated with a graph and kernel
   //   kernel_name = all      : all tiles in graph
   //   kernel_name = <kernel> : only tiles used by that specific kernel
-  std::vector<tile_type> 
-  AieTraceMetadata::get_mem_tiles(const xrt_core::device* device, const std::string& graph_name,
-                                  const std::string& kernel_name)
+  std::vector<tile_type> AieTraceMetadata::
+  get_mem_tiles(const xrt_core::device* device, const std::string& graph_name,
+    const std::string& kernel_name)
   {
     if (getHardwareGen() == 1) 
       return {};
@@ -477,9 +493,9 @@ namespace xdp {
   // Find all AIE or MEM tiles associated with a graph and kernel
   //   kernel_name = all      : all tiles in graph
   //   kernel_name = <kernel> : only tiles used by that specific kernel
-  std::vector<tile_type> 
-  AieTraceMetadata::get_tiles(const xrt_core::device* device, const std::string& graph_name,
-                              module_type type, const std::string& kernel_name)
+  std::vector<tile_type> AieTraceMetadata::
+  get_tiles(const xrt_core::device* device, const std::string& graph_name,
+    module_type type, const std::string& kernel_name)
   {
     if (type == module_type::mem_tile)
       return get_mem_tiles(device, graph_name, kernel_name);
@@ -523,10 +539,9 @@ namespace xdp {
     return tiles;
   }
 
-  void
-  AieTraceMetadata::getConfigMetricsForTiles(std::vector<std::string>& metricsSettings,
-                                             std::vector<std::string>& graphMetricsSettings,
-                                             module_type type)
+  void AieTraceMetadata::
+  getConfigMetricsForTiles(std::vector<std::string>& metricsSettings,
+    std::vector<std::string>& graphMetricsSettings, module_type type)
   {
     // Make sure settings are available and appropriate
     if (metricsSettings.empty() && graphMetricsSettings.empty())
@@ -871,16 +886,15 @@ namespace xdp {
     }
 
     // Remove all the "off" tiles
-    for (auto &t : offTiles) {
+    for (auto &t : offTiles)
       configMetrics.erase(t);
-    }
 
     // If needed, turn on debug fal messages
     // xaiefal::Logger::get().setLogLevel(xaiefal::LogLevel::DEBUG);
   }
 
-  std::vector<gmio_type> 
-  AieTraceMetadata::get_trace_gmios(const xrt_core::device* device)
+  std::vector<gmio_type> AieTraceMetadata::
+  get_trace_gmios(const xrt_core::device* device)
   {
     auto data = device->get_axlf_section(AIE_METADATA);
     if (!data.first || !data.second)
@@ -911,7 +925,8 @@ namespace xdp {
     return gmios;
   }
 
-  aiecompiler_options AieTraceMetadata::get_aiecompiler_options(const xrt_core::device* device)
+  aiecompiler_options AieTraceMetadata::
+  get_aiecompiler_options(const xrt_core::device* device)
   {
     auto data = device->get_axlf_section(AIE_METADATA);
     if (!data.first || !data.second)
@@ -926,9 +941,9 @@ namespace xdp {
     return aiecompiler_options;
   }
 
-  std::vector<tile_type>
-  AieTraceMetadata::get_event_tiles(const xrt_core::device* device, const std::string& graph_name,
-                                    module_type type)
+  std::vector<tile_type> AieTraceMetadata::
+  get_event_tiles(const xrt_core::device* device, const std::string& graph_name,
+    module_type type)
   {
     auto data = device->get_axlf_section(AIE_METADATA);
     if (!data.first || !data.second)
@@ -967,7 +982,9 @@ namespace xdp {
     return tiles;
   }
 
-  uint8_t AieTraceMetadata::getMetricSetIndex(std::string metricString) {
+  uint8_t AieTraceMetadata::
+  getMetricSetIndex(std::string metricString)
+  {
     // Verify metric set is valid for either AIE or MEM tiles, 
     // and convert to index to pass to PS kernel.
     auto metricSetItr = std::find(metricSets.begin(), metricSets.end(), metricString);

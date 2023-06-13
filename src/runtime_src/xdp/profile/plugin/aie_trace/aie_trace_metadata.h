@@ -31,10 +31,8 @@ namespace xdp {
 typedef std::vector<uint32_t>  ValueVector;
 
 class AieTraceMetadata{
-  private:
-    
-  //using module_type = xrt_core::edge::aie::module_type;
 
+  private:
     bool useDelay = false;
     bool useUserControl = false;
     bool useGraphIterator = false;
@@ -77,8 +75,8 @@ class AieTraceMetadata{
     std::vector<std::string> getSettingsVector(std::string settingsString); 
     std::vector<tile_type> getMemTilesForTracing();
 
-    static void read_aie_metadata(const char* data, size_t size, 
-                                  boost::property_tree::ptree& aie_project);
+    void read_aie_metadata(const char* data, size_t size,
+      boost::property_tree::ptree& aie_project);
 
     std::vector<tile_type> get_tiles(const xrt_core::device* device, 
                                      const std::string& graph_name,
@@ -142,7 +140,23 @@ class AieTraceMetadata{
         return delayCycles;
       return 0;
     }
-    
+
+  // Test Functionality
+  private:
+    bool test_mode = false;
+    const char* test_metadata = nullptr;
+  public:
+    void set_test_mode() {
+      test_mode = true;
+    }
+    void unset_test_mode() {
+      test_mode = false;
+      test_metadata = nullptr;
+    }
+    void set_test_metadata(const char* metadata) {
+      test_metadata = metadata;
+    }
+
   };
 
 }

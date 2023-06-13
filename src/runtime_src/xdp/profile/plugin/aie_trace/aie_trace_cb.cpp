@@ -18,18 +18,22 @@
 
 #include "aie_trace_cb.h"
 #include "aie_trace_plugin.h"
-
+#include "aie_trace_test.h"
 
 namespace xdp {
 
   // AIE Trace Plugin has only a static instance of the plugin object and a callback
 
   static AieTracePluginUnified aieTracePluginInstance;
+  static aieTraceTest aieTraceTestInstance;
 
   static void updateAIEDevice(void* handle)
   {
-    if (AieTracePluginUnified::alive())
+    if (AieTracePluginUnified::alive()) {
       aieTracePluginInstance.updateAIEDevice(handle);
+      aieTraceTestInstance.init(aieTracePluginInstance);
+      aieTraceTestInstance.finish(aieTracePluginInstance);
+    }
   }
 
   static void flushAIEDevice(void* handle)

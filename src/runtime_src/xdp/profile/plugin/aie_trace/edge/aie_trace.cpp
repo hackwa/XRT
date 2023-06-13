@@ -80,8 +80,10 @@ namespace xdp {
   
   constexpr double AIE_DEFAULT_FREQ_MHZ = 1000.0; // should be changed
 
-  AieTrace_EdgeImpl::AieTrace_EdgeImpl(VPDatabase* database, std::shared_ptr<AieTraceMetadata> metadata)
-      : AieTraceImpl(database, metadata) {
+  AieTrace_EdgeImpl::
+  AieTrace_EdgeImpl(VPDatabase* database, std::shared_ptr<AieTraceMetadata> metadata)
+    : AieTraceImpl(database, metadata)
+  {
     // Pre-defined metric sets
     metricSets = {"functions", "functions_partial_stalls", "functions_all_stalls", "all"};
     
@@ -188,7 +190,8 @@ namespace xdp {
     mMemTileTraceEndEvent   = XAIE_EVENT_NONE_MEM_TILE;
   }
 
-  bool AieTrace_EdgeImpl::checkAieDeviceAndRuntimeMetrics(uint64_t deviceId, void* handle)
+  bool AieTrace_EdgeImpl::
+  checkAieDeviceAndRuntimeMetrics(uint64_t deviceId, void* handle)
   {
     aieDevInst = static_cast<XAie_DevInst*>(db->getStaticInfo().getAieDevInst(fetchAieDevInst, handle));
     aieDevice  = static_cast<xaiefal::XAieDev*>(db->getStaticInfo().getAieDevice(allocateAieDevice, deallocateAieDevice, handle));
@@ -206,11 +209,12 @@ namespace xdp {
     return true;
   }
 
-  void AieTrace_EdgeImpl::updateDevice() {
-    
-     if (!checkAieDeviceAndRuntimeMetrics(metadata->getDeviceID(), metadata->getHandle()))
+  void AieTrace_EdgeImpl::
+  updateDevice()
+  {
+    if (!checkAieDeviceAndRuntimeMetrics(metadata->getDeviceID(), metadata->getHandle()))
       return;
-    
+
     // Set metrics for counters and trace events 
     if (!setMetricsSettings(metadata->getDeviceID(), metadata->getHandle())) {
         std::string msg("Unable to configure AIE trace control and events. No trace will be generated.");
@@ -219,7 +223,8 @@ namespace xdp {
     }
   }
 
-  bool AieTrace_EdgeImpl::tileHasFreeRsc(xaiefal::XAieDev* aieDevice, XAie_LocType& loc, 
+  bool AieTrace_EdgeImpl::
+  tileHasFreeRsc(xaiefal::XAieDev* aieDevice, XAie_LocType& loc, 
                                          const module_type type, const std::string& metricSet)
   {
     auto stats = aieDevice->getRscStat(XAIEDEV_DEFAULT_GROUP_AVAIL);
@@ -291,7 +296,8 @@ namespace xdp {
     return true;
   }
 
-  void AieTrace_EdgeImpl::printTileStats(xaiefal::XAieDev* aieDevice, const tile_type& tile)
+  void AieTrace_EdgeImpl::
+  printTileStats(xaiefal::XAieDev* aieDevice, const tile_type& tile)
   {
     auto col = tile.col;
     auto row = tile.row + metadata->getAIETileRowOffset();
@@ -331,14 +337,14 @@ namespace xdp {
     xrt_core::message::send(severity_level::info, "XRT", msg.str());
   }
 
-    // Release counters from latest tile (because something went wrong)
-  void AieTrace_EdgeImpl::releaseCurrentTileCounters(int numCoreCounters, int numMemoryCounters)
+  // Release counters from latest tile (because something went wrong)
+  void AieTrace_EdgeImpl::
+  releaseCurrentTileCounters(int numCoreCounters, int numMemoryCounters)
   {
     for (int i=0; i < numCoreCounters; i++) {
       mCoreCounters.back()->stop();
       mCoreCounters.back()->release();
       mCoreCounters.pop_back();
-      mCoreCounterTiles.pop_back();
     }
     for (int i=0; i < numMemoryCounters; i++) {
       mMemoryCounters.back()->stop();
@@ -347,8 +353,44 @@ namespace xdp {
     }
   }
 
-  module_type 
-  AieTrace_EdgeImpl::getTileType(uint16_t absRow)
+  // Release all resources in all tiles
+  void AieTrace_EdgeImpl::
+  releaseAllResources()
+  {
+    // Counter Resources
+    for (const auto& c : mCoreCounters) {
+      c->stop();
+      c->release();
+    }
+    mCoreCounters.clear();
+    for (const auto& c : mMemoryCounters) {
+      c->stop();
+      c->release();
+    }
+    mMemoryCounters.clear();
+    // Trace + Broadcast Resources
+    for (const auto& kv : mCoreTraceInfo) {
+      auto tile = kv.first;
+      auto& core = aieDevice->tile(tile.col, tile.row).core();
+      auto coreTrace = core.traceControl();
+      for (const auto& s : kv.second)
+        coreTrace->releaseTraceSlot(s);
+      coreTrace->stop();
+      coreTrace->release();
+    }
+    for (const auto& kv : mMemoryTraceInfo) {
+      auto tile = kv.first;
+      auto& memory = aieDevice->tile(tile.col, tile.row).mem();
+      auto memoryTrace = memory.traceControl();
+      for (const auto& e : kv.second)
+        e->release();
+      memoryTrace->stop();
+      memoryTrace->release();
+    }
+  }
+
+  module_type AieTrace_EdgeImpl::
+  getTileType(uint16_t absRow)
   {
     if (absRow == 0)
       return module_type::shim;
@@ -358,14 +400,15 @@ namespace xdp {
   }
 
 
-  void 
-  AieTrace_EdgeImpl::configEventSelections(XAie_DevInst* aieDevInst,
-                                           const XAie_LocType loc,
-                                           const XAie_ModuleType mod,
-                                           const module_type type,
-                                           const std::string metricSet,
-                                           const uint8_t channel0,
-                                           const uint8_t channel1) 
+  void AieTrace_EdgeImpl::
+  configEventSelections(XAie_DevInst* aieDevInst,
+    const XAie_LocType loc,
+    const XAie_ModuleType mod,
+    const module_type type,
+    const std::string metricSet,
+    const uint8_t channel0,
+    const uint8_t channel1
+  )
   {
     if (type != module_type::mem_tile)
       return;
@@ -375,8 +418,8 @@ namespace xdp {
     XAie_EventSelectDmaChannel(aieDevInst, loc, 1, dmaDir, channel1);
   }
 
-  bool
-  AieTrace_EdgeImpl::setMetricsSettings(uint64_t deviceId, void* handle)
+  bool AieTrace_EdgeImpl::
+  setMetricsSettings(uint64_t deviceId, void* handle)
   {
      if (!metadata->getIsValidMetrics()) {
       std::string msg("AIE trace metrics were not specified in xrt.ini. AIE event trace will not be available.");
@@ -501,7 +544,7 @@ namespace xdp {
           if (perfCounter->start() != XAIE_OK) 
             break;
 
-          mCoreCounterTiles.push_back(tile);
+          // Keep Track of this resource
           mCoreCounters.push_back(perfCounter);
           numCoreCounters++;
 
@@ -544,6 +587,7 @@ namespace xdp {
           if (perfCounter->start() != XAIE_OK) 
             break;
 
+          // Keep Track of this resource
           mMemoryCounters.push_back(perfCounter);
           numMemoryCounters++;
 
@@ -618,6 +662,9 @@ namespace xdp {
             break;
           numCoreTraceEvents++;
 
+          // Keep track of resources to free them later
+          mCoreTraceInfo[tile].push_back(slot);
+
           // Update config file
           XAie_EventLogicalToPhysicalConv(aieDevInst, loc, mod, coreEvents[i], &phyEvent);
           cfgTile->core_trace_config.traced_events[slot] = phyEvent;
@@ -627,7 +674,7 @@ namespace xdp {
         cfgTile->core_trace_config.start_event = phyEvent;
         XAie_EventLogicalToPhysicalConv(aieDevInst, loc, mod, mCoreTraceEndEvent, &phyEvent);
         cfgTile->core_trace_config.stop_event = phyEvent;
-        
+
         coreEvents.clear();
         numTileCoreTraceEvents[numCoreTraceEvents]++;
 
@@ -710,6 +757,9 @@ namespace xdp {
             break;
           numMemoryTraceEvents++;
 
+          // Keep track of this resource to free it later
+          mMemoryTraceInfo[tile].push_back(TraceE);
+
           // Update config file
           uint32_t S = 0;
           XAie_LocType L;
@@ -737,6 +787,9 @@ namespace xdp {
           if (TraceE->start() != XAIE_OK) 
             break;
           numMemoryTraceEvents++;
+
+          // Keep track of this resource to free it later
+          mMemoryTraceInfo[tile].push_back(TraceE);
 
           // Update config file
           // Get Trace slot
@@ -874,7 +927,8 @@ namespace xdp {
     return true;
   } // end setaieTileMetricsSettings
 
-  uint64_t AieTrace_EdgeImpl::checkTraceBufSize(uint64_t aieTraceBufSize) 
+  uint64_t AieTrace_EdgeImpl::
+  checkTraceBufSize(uint64_t aieTraceBufSize)
   {
     uint64_t deviceMemorySize = getPSMemorySize();
     if (deviceMemorySize == 0)
@@ -910,7 +964,8 @@ namespace xdp {
     return aieTraceBufSize;
   }
 
-  bool AieTrace_EdgeImpl::configureStartDelay(xaiefal::XAieMod& core)
+  bool AieTrace_EdgeImpl::
+  configureStartDelay(xaiefal::XAieMod& core)
   {
     if (!metadata->getDelay())
       return false;
@@ -944,6 +999,9 @@ namespace xdp {
     if (pc->start() != XAIE_OK)
         return false;
 
+    // Keep track of this resource
+    mCoreCounters.push_back(pc);
+
     // Configure upper 32 bits if necessary
     // Use previous counter to start a new counter
     if (!metadata->getUseOneDelayCounter() && delayCyclesHigh) {
@@ -960,6 +1018,9 @@ namespace xdp {
       pc->changeRstEvent(mod, counterEvent);
       if (pc->start() != XAIE_OK)
         return false;
+
+      // Keep track of this resource
+      mCoreCounters.push_back(pc);
     }
 
     if (xrt_core::config::get_verbosity() >= static_cast<uint32_t>(severity_level::debug)) {
@@ -976,13 +1037,15 @@ namespace xdp {
     return true;
   }
 
-  inline uint32_t AieTrace_EdgeImpl::bcIdToEvent(int bcId)
+  inline uint32_t AieTrace_EdgeImpl::
+  bcIdToEvent(int bcId)
   {
     return bcId + CORE_BROADCAST_EVENT_BASE;
   }
 
 
-  bool AieTrace_EdgeImpl::configureStartIteration(xaiefal::XAieMod& core)
+  bool AieTrace_EdgeImpl::
+  configureStartIteration(xaiefal::XAieMod& core)
   {
     XAie_ModuleType mod = XAIE_CORE_MOD;
     // Count up by 1 for every iteration
@@ -1000,6 +1063,9 @@ namespace xdp {
     if (pc->start() != XAIE_OK)
         return false;
 
+    // Keep track of this resource
+    mCoreCounters.push_back(pc);
+
     if (xrt_core::config::get_verbosity() >= static_cast<uint32_t>(severity_level::debug)) {
       std::stringstream msg;
       msg << "Configuring aie trace to start on iteration : " << metadata->getIterationCount();
@@ -1010,7 +1076,8 @@ namespace xdp {
     return true;
   }
 
-  void AieTrace_EdgeImpl::flushAieTileTraceModule()
+  void AieTrace_EdgeImpl::
+  flushAieTileTraceModule()
   {
     if (mTraceFlushLocs.empty() && mMemTileTraceFlushLocs.empty())
       return;

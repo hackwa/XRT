@@ -18,7 +18,9 @@
 #ifndef AIE_TRACE_DOT_H
 #define AIE_TRACE_DOT_H
 
+#include <array>
 #include <cstdint>
+#include <map>
 
 #include "xdp/profile/plugin/aie_trace/aie_trace_impl.h"
 #include "xaiefal/xaiefal.hpp"
@@ -37,29 +39,34 @@ namespace xdp {
       XDP_EXPORT
       virtual void flushAieTileTraceModule();
 
+      // Public Access for testing only
+      XDP_EXPORT
+      void releaseAllResources();
+
     private: 
       typedef XAie_Events            EventType;
       typedef std::vector<EventType> EventVector;
       typedef std::vector<uint32_t>  ValueVector;
 
       module_type getTileType(uint16_t row);
-      void configEventSelections(XAie_DevInst* aieDevInst,
-                                 const XAie_LocType loc,
-                                 const XAie_ModuleType mod,
-                                 const module_type type,
-                                 const std::string metricSet,
-                                 const uint8_t channel0,
-                                 const uint8_t channel);
-      bool setMetricsSettings(uint64_t deviceId, 
-                      void* handle);
-      void releaseCurrentTileCounters(int numCoreCounters, 
-                                      int numMemoryCounters);
-      bool tileHasFreeRsc(xaiefal::XAieDev* aieDevice, 
-                          XAie_LocType& loc, 
-                          const module_type type,
-                          const std::string& metricSet);
-      void printTileStats(xaiefal::XAieDev* aieDevice, 
-                          const tile_type& tile);
+      void configEventSelections(
+        XAie_DevInst* aieDevInst,
+        const XAie_LocType loc,
+        const XAie_ModuleType mod,
+        const module_type type,
+        const std::string metricSet,
+        const uint8_t channel0,
+        const uint8_t channel
+      );
+      bool setMetricsSettings(uint64_t deviceId, void* handle);
+      void releaseCurrentTileCounters(int numCoreCounters, int numMemoryCounters);
+      bool tileHasFreeRsc(
+        xaiefal::XAieDev* aieDevice,
+        XAie_LocType& loc,
+        const module_type type,
+        const std::string& metricSet
+      );
+      void printTileStats(xaiefal::XAieDev* aieDevice, const tile_type& tile);
       bool configureStartIteration(xaiefal::XAieMod& core);
       bool configureStartDelay(xaiefal::XAieMod& core);
      
@@ -77,10 +84,12 @@ namespace xdp {
       std::map<std::string, EventVector> mMemoryEventSets;
       std::map<std::string, EventVector> mMemTileEventSets;
 
-      // AIE profile counters
-      std::vector<tile_type> mCoreCounterTiles;
+      // Keep track of allocated resources
+      //std::vector<tile_type> mCoreCounterTiles;
       std::vector<std::shared_ptr<xaiefal::XAiePerfCounter>> mCoreCounters;
       std::vector<std::shared_ptr<xaiefal::XAiePerfCounter>> mMemoryCounters;
+      std::map<tile_type, std::vector<uint8_t>> mCoreTraceInfo;
+      std::map<tile_type, std::vector<std::shared_ptr<xaiefal::XAieTraceEvent>>> mMemoryTraceInfo;
 
       // Counter metrics (same for all sets)
       EventType   mCoreTraceStartEvent;

@@ -53,6 +53,12 @@ namespace xdp {
       std::shared_ptr<AieTraceMetadata> metadata;
     };
     std::map<void*, AIEData>  handleToAIEData;
+
+  // Test access only
+  public:
+    std::map<void*, AIEData>& getAIEDataForTest() {
+      return handleToAIEData;
+    }
   };
 
 }   
